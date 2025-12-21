@@ -130,7 +130,9 @@ class SheetManager:
                         # Raw URL
                         # minimal validation
                         if "://" in cell:
-                            urls.add(cell.strip())
+                            raw_url = cell.strip()
+                            clean_url = raw_url.split('?')[0]
+                            urls.add(clean_url)
         
         return urls
 
@@ -192,7 +194,8 @@ class SheetManager:
                 continue
                 
             try:
-                rows = ws.get_all_values()
+                # Read with formulas to preserve data integrity during rewrite
+                rows = ws.get_all_values(value_render_option='FORMULA')
                 if not rows: continue
                 
                 headers = rows[0]
@@ -202,21 +205,28 @@ class SheetManager:
                     continue
                 
                 rows_to_move = []
-                rows_to_delete_indices = []
+                rows_to_keep = [headers]
                 
-                for i, row in enumerate(rows[1:], start=2):
+                for row in rows[1:]:
+                    should_discard = False
                     if len(row) > status_idx:
                         status = row[status_idx].strip().upper()
                         if status == "DISCARD":
-                            rows_to_move.append(row)
-                            rows_to_delete_indices.append(i)
+                            should_discard = True
+                    
+                    if should_discard:
+                        rows_to_move.append(row)
+                    else:
+                        rows_to_keep.append(row)
                 
                 if rows_to_move:
                     print(f"Moving {len(rows_to_move)} discarded offers from '{ws.title}' to Trash...")
-                    trash_ws.append_rows(rows_to_move)
+                    trash_ws.append_rows(rows_to_move, value_input_option='USER_ENTERED')
                     
-                    for idx in sorted(rows_to_delete_indices, reverse=True):
-                        ws.delete_rows(idx)
+                    # Batch delete by rewriting the sheet
+                    print(f"Updating '{ws.title}' (removing discarded rows in bulk)...")
+                    ws.clear()
+                    ws.update(rows_to_keep, value_input_option='USER_ENTERED')
                         
             except Exception as e:
                 print(f"Error processing discards in '{ws.title}': {e}")
@@ -321,8 +331,8 @@ class SheetManager:
                 offer.get("company", ""),
                 # Salary, Location removed
                 offer.get("tags", ""),
-                "", # Status
-                offer["full_url"] # Link
+                "NEW", # Status (User requested: between tags and link)
+                offer.get("full_url", offer.get("link", "")) # Link backup
             ]
             rows_to_add.append(row)
         

@@ -37,11 +37,15 @@ def get_page_content(url):
     # Clean up excessive newlines
     markdown_content = re.sub(r'\n{3,}', '\n\n', markdown_content)
 
-    filename = f"{sanitize_filename(url)}.md"
-    with open(filename, "w", encoding="utf-8") as f:
+    filename_md = f"{sanitize_filename(url)}.md"
+    with open(filename_md, "w", encoding="utf-8") as f:
         f.write(markdown_content)
 
-    print(f"Saved content to {filename}")
+    filename_html = f"{sanitize_filename(url)}.html"
+    with open(filename_html, "w", encoding="utf-8") as f:
+        f.write(str(soup))
+
+    print(f"Saved content to {filename_md} and {filename_html}")
     return markdown_content
 
 get_page_content("https://theprotocol.it/filtry/junior;p/krakow;wp?sort=date")
