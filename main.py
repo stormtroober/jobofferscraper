@@ -60,6 +60,11 @@ def get_sheet_title(url):
             clean_seg = seg.split(';')[0]
             if clean_seg:
                 parts.append(clean_seg)
+        
+        # Extract keyword (kw)
+        kw = qs.get("kw", [""])[0]
+        if kw:
+            parts.append(f"kw-{kw}")
     else:
         # Fallback
         parts.append(parsed.path.replace('/', '-'))
@@ -160,6 +165,10 @@ def main():
     existing_slugs = sheet_manager.get_all_existing_slugs()
     print(f"Found {len(existing_slugs)} existing offers across all tabs.")
 
+    print("Fetching existing records for content deduplication...")
+    existing_records = sheet_manager.get_all_existing_records()
+    print(f"Loaded {len(existing_records)} existing records.")
+
     driver = get_driver(headless=True)
     
     try:
@@ -202,8 +211,9 @@ def main():
             
             # Fetch all existing records for robust deduplication
             # Structure: [{'title':..., 'company':..., 'tags':..., 'link':...}, ...]
-            existing_records = sheet_manager.get_all_existing_records()
-            print(f"  Loaded {len(existing_records)} existing records for deduplication.")
+            # Optimization: existing_records is now loaded once outside the loop and updated in-memory.
+            # existing_records = sheet_manager.get_all_existing_records() 
+            # print(f"  Loaded {len(existing_records)} existing records for deduplication.")
             
             for offer in raw_offers:
                 # 1. Link Check
