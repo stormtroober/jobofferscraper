@@ -135,10 +135,6 @@ def is_polish_title(title):
     return False
 
 def main():
-    # Ensure data directory exists
-    if not os.path.exists("data"):
-        os.makedirs("data")
-
     # Read links
     links_file = "links"
     urls = []

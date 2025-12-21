@@ -115,13 +115,6 @@ class JustJoinITStrategy(ScrapingStrategy):
         # 2. Convert to Markdown
         md_content = html_to_markdown(html)
         
-        # 3. Save Markdown (Optional but useful for debugging/storage)
-        filename = f"{sanitize_filename(url)}.md"
-        filepath = os.path.join(save_dir, filename)
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(md_content)
-        print(f"Saved markdown to {filepath}")
-        
-        # 4. Parse
+        # 3. Parse
         offers = self.parse(md_content)
         return offers

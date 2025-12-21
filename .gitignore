@@ -9,7 +9,6 @@ __pycache__/
 *.lock
 *.toml
 *.json
-
 # Distribution / packaging
 .Python
 build/
