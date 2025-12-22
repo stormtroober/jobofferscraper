@@ -139,15 +139,58 @@ def is_polish_title(title):
             
     return False
 
+def parse_links_file(filepath):
+    """
+    Parses the links file. Supports two formats:
+    1. Legacy: List of URLs
+    2. Grouped: INI-style sections
+       [Sheet Name]
+       url1
+       url2
+    
+    Returns a list of dictionaries:
+    [
+      {'title': 'Sheet Name', 'urls': ['url1', 'url2']},
+      {'title': None, 'urls': ['url3']} # Legacy/Ungrouped
+    ]
+    """
+    groups = []
+    current_group = {'title': None, 'urls': []}
+    
+    if not os.path.exists(filepath):
+        return []
+        
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+                
+            # Check for Header [Title]
+            if line.startswith("[") and line.endswith("]"):
+                # Save previous group if it has URLs
+                if current_group['urls']:
+                    groups.append(current_group)
+                
+                # Start new group
+                title = line[1:-1].strip()
+                current_group = {'title': title, 'urls': []}
+            else:
+                # It's a URL
+                current_group['urls'].append(line)
+    
+    # Add last group
+    if current_group['urls']:
+        groups.append(current_group)
+        
+    return groups
+
 def main():
     # Read links
     links_file = "links"
-    urls = []
-    if os.path.exists(links_file):
-        with open(links_file, "r") as f:
-            urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    link_groups = parse_links_file(links_file)
     
-    if not urls:
+    if not link_groups:
         print("No URLs found in 'links' file. Please add URLs to the 'links' file.")
         return
 
@@ -172,50 +215,63 @@ def main():
     driver = get_driver(headless=True)
     
     try:
-        for url in urls:
-            print(f"\nProcessing: {url}")
-            sheet_title = get_sheet_title(url)
-            print(f"Target Worksheet: '{sheet_title}'")
-
-            limit = 50
-            # Determine Strategy
-            if "nofluffjobs.com" in url:
-                strategy = NoFluffJobsStrategy(driver)
-            elif "theprotocol.it" in url:
-                strategy = TheProtocolStrategy(driver)
-                limit = 30
-            else:
-                strategy = JustJoinITStrategy(driver)
+        for group in link_groups:
+            # Determine Sheet Title
+            sheet_title = group['title']
             
-            # Scrape
-            try:
-                all_scraped = strategy.run(url)
-            except Exception as e:
-                print(f"Error scraping {url}: {e}")
-                continue
+            if not sheet_title:
+                if group['urls']:
+                    # Fallback to deriving from first URL
+                    sheet_title = get_sheet_title(group['urls'][0])
+                else:
+                    continue 
 
-            # Filtering Polish titles
-            pre_filter_count = len(all_scraped)
-            all_scraped = [offer for offer in all_scraped if not is_polish_title(offer['title'])]
-            filtered_count = pre_filter_count - len(all_scraped)
-            if filtered_count > 0:
-                print(f"  Discarded {filtered_count} offers with Polish titles.")
-
-            raw_offers = all_scraped[:limit]
-            print(f"  Found {len(all_scraped)} valid offers. Processing top {len(raw_offers)}.")
+            print(f"\nProcessing Group: '{sheet_title}' with {len(group['urls'])} sources.")
             
-            # Filter
+            # Aggregate offers from ALL URLs in this group
+            combined_offers = []
+            
+            for url in group['urls']:
+                print(f"  Fetching: {url}")
+                
+                limit = 50
+                # Determine Strategy
+                if "nofluffjobs.com" in url:
+                    strategy = NoFluffJobsStrategy(driver)
+                elif "theprotocol.it" in url:
+                    strategy = TheProtocolStrategy(driver)
+                    limit = 30
+                else:
+                    strategy = JustJoinITStrategy(driver)
+                
+                # Scrape
+                try:
+                    scraped = strategy.run(url)
+                    print(f"    Scraped {len(scraped)} raw offers.")
+                    
+                    # Filtering Polish titles (Per URL)
+                    pre_filter_count = len(scraped)
+                    scraped = [offer for offer in scraped if not is_polish_title(offer['title'])]
+                    filtered_count = pre_filter_count - len(scraped)
+                    if filtered_count > 0:
+                        print(f"    Discarded {filtered_count} with Polish titles.")
+
+                    # Slice top N per URL
+                    scraped = scraped[:limit]
+                    
+                    combined_offers.extend(scraped)
+                    
+                except Exception as e:
+                    print(f"    Error scraping {url}: {e}")
+                    continue
+
+            print(f"  Total valid candidates for '{sheet_title}': {len(combined_offers)}")
+            
+            # Now we filter duplicates for the whole batch
             new_offers = []
-            skipped_old = 0
             skipped_dup = 0
             
-            # Fetch all existing records for robust deduplication
-            # Structure: [{'title':..., 'company':..., 'tags':..., 'link':...}, ...]
-            # Optimization: existing_records is now loaded once outside the loop and updated in-memory.
-            # existing_records = sheet_manager.get_all_existing_records() 
-            # print(f"  Loaded {len(existing_records)} existing records for deduplication.")
-            
-            for offer in raw_offers:
+            for offer in combined_offers:
                 # 1. Link Check
                 if offer['full_url'] in existing_slugs:
                     skipped_dup += 1
@@ -224,8 +280,6 @@ def main():
                 # 2. Content Check (Tuple Match)
                 is_content_dup = False
                 for record in existing_records:
-                    # Check overlap: Title + Company + Tags
-                    # We compare stripped strings
                     if (offer['title'] == record['title'] and 
                         offer['company'] == record['company'] and
                         offer['tags'] == record['tags']):
@@ -233,12 +287,11 @@ def main():
                         break
                 
                 if is_content_dup:
-                    print(f"  Skipped content duplicate: {offer['title']} @ {offer['company']}")
+                    # print(f"    Skipped content duplicate: {offer['title']}")
                     skipped_dup += 1
                     continue
                 
                 new_offers.append(offer)
-                # Add to set/records so we don't add reuse in same run
                 existing_slugs.add(offer['full_url'])
                 existing_records.append({
                     'title': offer['title'],
@@ -247,15 +300,13 @@ def main():
                     'link': offer['full_url']
                 })
             
-            print(f"  Filtered out: {skipped_dup} duplicates.")
+            print(f"  Filtered out {skipped_dup} duplicates (already in sheet).")
             print(f"  New offers to add: {len(new_offers)}")
             
             worksheet = sheet_manager.get_or_create_worksheet(sheet_title)
             if new_offers:
-                # We add them with prepend=True to keep newest on top
                 sheet_manager.add_offers(worksheet, new_offers, prepend=True)
             
-            # Reorder and Format (CVSENT on top, OUT at bottom, Colors)
             sheet_manager.reorder_and_format(worksheet)
             
     finally:

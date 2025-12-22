@@ -186,7 +186,7 @@ class SheetManager:
         return all_records
 
     def process_discards(self):
-        """Moves rows with Status='DISCARD' to a 'Trash' worksheet."""
+        """Moves rows with Status='DISCARD' or 'OUT' to a 'Trash' worksheet."""
         trash_ws = self.get_or_create_worksheet("Trash")
         
         for ws in self.spreadsheet.worksheets():
@@ -198,20 +198,21 @@ class SheetManager:
                 rows = ws.get_all_values(value_render_option='FORMULA')
                 if not rows: continue
                 
-                headers = rows[0]
+                header = rows[0]
                 try:
-                    status_idx = headers.index("Status")
+                    status_idx = header.index("Status")
                 except ValueError:
                     continue
                 
                 rows_to_move = []
-                rows_to_keep = [headers]
+                rows_to_keep = [header]
                 
                 for row in rows[1:]:
                     should_discard = False
                     if len(row) > status_idx:
                         status = row[status_idx].strip().upper()
-                        if status == "DISCARD":
+                        # Move both DISCARD and OUT to trash
+                        if status == "DISCARD" or status == "OUT":
                             should_discard = True
                     
                     if should_discard:
@@ -220,7 +221,7 @@ class SheetManager:
                         rows_to_keep.append(row)
                 
                 if rows_to_move:
-                    print(f"Moving {len(rows_to_move)} discarded offers from '{ws.title}' to Trash...")
+                    print(f"Moving {len(rows_to_move)} discarded/out offers from '{ws.title}' to Trash...")
                     trash_ws.append_rows(rows_to_move, value_input_option='USER_ENTERED')
                     
                     # Batch delete by rewriting the sheet
@@ -230,9 +231,19 @@ class SheetManager:
                         
             except Exception as e:
                 print(f"Error processing discards in '{ws.title}': {e}")
+                
+        # Format the Trash sheet as well (so OUT are red)
+        print("Formatting Trash sheet...")
+        self.reorder_and_format(trash_ws)
 
     def reorder_and_format(self, worksheet):
-        """Sorts CVSENT to top and applies color formatting (Green=CVSENT, Red=OUT)."""
+        """
+        Sorts: CVSENT -> SAVE -> Others -> OUT.
+        Colors: 
+         - CVSENT: Green
+         - SAVE: Yellow/Orange
+         - OUT: Red
+        """
         try:
             rows = worksheet.get_all_values(value_render_option='FORMULA')
             if not rows: return
@@ -246,6 +257,7 @@ class SheetManager:
                 return
 
             cvsent_rows = []
+            save_rows = []
             out_rows = []
             other_rows = []
 
@@ -254,6 +266,8 @@ class SheetManager:
                     status = row[status_idx].strip().upper()
                     if "CVSENT" in status:
                         cvsent_rows.append(row)
+                    elif "SAVE" in status:
+                        save_rows.append(row)
                     elif "OUT" in status:
                         out_rows.append(row)
                     else:
@@ -261,28 +275,17 @@ class SheetManager:
                 else:
                     other_rows.append(row)
 
-            # Order: CVSENT -> Others -> OUT (User didn't strictify OUT position but bottom is standard for rejected)
-            # User said "CVSENT sempre al top".
-            # Let's put OUT at the bottom to keep the main list clean? Or just mixed?
-            # User "introduci poi un nuovo status OUT e colora di rosso leggero".
-            # I will put OUT at the bottom to keep focus on active/new.
-            final_rows = [header] + cvsent_rows + other_rows + out_rows
+            # Order: CVSENT -> SAVE -> Others -> OUT
+            final_rows = [header] + cvsent_rows + save_rows + other_rows + out_rows
             
             # Write data back
             worksheet.clear()
             worksheet.update(final_rows, value_input_option='USER_ENTERED')
             
             # Formatting
-            # We need to apply colors.
-            # Ranges:
-            # Header: Row 1
-            # CVSENT: Row 2 to 1+len(cvsent)
-            # Others: ...
-            # OUT: ...
-            
-            # Formats
             fmt_header = {"textFormat": {"bold": True}}
             fmt_green = {"backgroundColor": {"red": 0.85, "green": 0.93, "blue": 0.83}} # Light Green
+            fmt_yellow = {"backgroundColor": {"red": 1.0, "green": 0.95, "blue": 0.8}}  # Light Yellow/Orange for SAVE
             fmt_red = {"backgroundColor": {"red": 0.96, "green": 0.8, "blue": 0.8}}     # Light Red
             fmt_white = {"backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0}}    # White/Reset
             
@@ -293,29 +296,23 @@ class SheetManager:
             
             current_row = 2
             
-            # Green (CVSENT)
-            if cvsent_rows:
-                end_row = current_row + len(cvsent_rows) - 1
-                batch.append({"range": f"A{current_row}:Z{end_row}", "format": fmt_green})
-                current_row = end_row + 1
-            
-            # White (Others)
-            if other_rows:
-                end_row = current_row + len(other_rows) - 1
-                batch.append({"range": f"A{current_row}:Z{end_row}", "format": fmt_white})
-                current_row = end_row + 1
-            
-            # Red (OUT)
-            if out_rows:
-                end_row = current_row + len(out_rows) - 1
-                batch.append({"range": f"A{current_row}:Z{end_row}", "format": fmt_red})
-                current_row = end_row + 1
+            # Helper to add format range
+            def add_fmt(row_list, fmt):
+                nonlocal current_row
+                if row_list:
+                    end_row = current_row + len(row_list) - 1
+                    batch.append({"range": f"A{current_row}:Z{end_row}", "format": fmt})
+                    current_row = end_row + 1
+
+            add_fmt(cvsent_rows, fmt_green)
+            add_fmt(save_rows, fmt_yellow)
+            add_fmt(other_rows, fmt_white)
+            add_fmt(out_rows, fmt_red)
                 
             try:
                 worksheet.batch_format(batch)
                 print(f"Reordered and formatted '{worksheet.title}'.")
             except AttributeError:
-                # Fallback if batch_format not available (older gspread)
                 pass
                 
         except Exception as e:
