@@ -6,7 +6,6 @@ from utils.converter import html_to_markdown, sanitize_filename
 
 class NoFluffJobsStrategy(ScrapingStrategy):
     def fetch(self, url):
-        print(f"Fetching {url}")
         self.driver.get(url)
         # Scroll down is often needed for infinite scroll, 
         # but for now let's stick to what's loaded or maybe basic scroll?

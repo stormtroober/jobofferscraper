@@ -185,6 +185,25 @@ class SheetManager:
             
         return all_records
 
+    def _clear_formatting(self, worksheet):
+        """Clears all formatting from the worksheet to prevent ghost colors."""
+        try:
+            body = {
+                "requests": [
+                    {
+                        "updateCells": {
+                            "range": {
+                                "sheetId": worksheet.id
+                            },
+                            "fields": "userEnteredFormat"
+                        }
+                    }
+                ]
+            }
+            self.spreadsheet.batch_update(body)
+        except Exception as e:
+            print(f"Error clearing formatting for '{worksheet.title}': {e}")
+
     def process_discards(self):
         """Moves rows with Status='DISCARD' or 'OUT' to a 'Trash' worksheet."""
         trash_ws = self.get_or_create_worksheet("Trash")
@@ -227,7 +246,9 @@ class SheetManager:
                     # Batch delete by rewriting the sheet
                     print(f"Updating '{ws.title}' (removing discarded rows in bulk)...")
                     ws.clear()
+                    self._clear_formatting(ws)
                     ws.update(rows_to_keep, value_input_option='USER_ENTERED')
+                    self.reorder_and_format(ws)
                         
             except Exception as e:
                 print(f"Error processing discards in '{ws.title}': {e}")
@@ -280,6 +301,7 @@ class SheetManager:
             
             # Write data back
             worksheet.clear()
+            self._clear_formatting(worksheet)
             worksheet.update(final_rows, value_input_option='USER_ENTERED')
             
             # Formatting

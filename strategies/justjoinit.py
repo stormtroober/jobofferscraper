@@ -5,7 +5,6 @@ from utils.converter import html_to_markdown, sanitize_filename
 
 class JustJoinITStrategy(ScrapingStrategy):
     def fetch(self, url):
-        print(f"Fetching {url}")
         self.driver.get(url)
         return self.driver.page_source
 

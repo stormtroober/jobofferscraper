@@ -17,6 +17,15 @@ def get_driver(headless=True):
     user_agent = random.choice(USER_AGENTS)
     options.set_preference("general.useragent.override", user_agent)
     
+    # Disable all types of cache
+    options.set_preference("browser.cache.disk.enable", False)
+    options.set_preference("browser.cache.memory.enable", False)
+    options.set_preference("browser.cache.offline.enable", False)
+    options.set_preference("network.http.use-cache", False)
+
+    # Enable private browsing
+    options.add_argument("-private")
+    
     if headless:
         options.add_argument("-headless")
     

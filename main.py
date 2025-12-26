@@ -185,7 +185,13 @@ def parse_links_file(filepath):
         
     return groups
 
+import argparse
+
 def main():
+    parser = argparse.ArgumentParser(description="Job Offer Scraper")
+    parser.add_argument("--organize-only", action="store_true", help="Only organize sheets (process discards/reorder) without scraping")
+    args = parser.parse_args()
+
     # Read links
     links_file = "links"
     link_groups = parse_links_file(links_file)
@@ -204,6 +210,25 @@ def main():
     print("Processing discards (moving to Trash)...")
     sheet_manager.process_discards()
 
+    if args.organize_only:
+        print("\n=== ORGANIZE ONLY MODE ===")
+        print("Skipping scraping. Reordering and verifying sheets based on 'links' groups...")
+        
+        for group in link_groups:
+            sheet_title = group['title']
+            if not sheet_title and group['urls']:
+                sheet_title = get_sheet_title(group['urls'][0])
+            
+            if sheet_title:
+                try:
+                    worksheet = sheet_manager.get_or_create_worksheet(sheet_title)
+                    sheet_manager.reorder_and_format(worksheet)
+                except Exception as e:
+                    print(f"Error processing sheet '{sheet_title}': {e}")
+        
+        print("Organization complete.")
+        return
+
     print("Fetching existing offers from all tabs to avoid duplicates...")
     existing_slugs = sheet_manager.get_all_existing_slugs()
     print(f"Found {len(existing_slugs)} existing offers across all tabs.")
@@ -214,6 +239,9 @@ def main():
 
     driver = get_driver(headless=True)
     
+    # Statistics for the summary
+    stats = []
+
     try:
         for group in link_groups:
             # Determine Sheet Title
@@ -226,13 +254,18 @@ def main():
                 else:
                     continue 
 
-            print(f"\nProcessing Group: '{sheet_title}' with {len(group['urls'])} sources.")
+            print(f"\n{'='*60}")
+            print(f"Processing Group: '{sheet_title}'")
+            print(f"Sources: {len(group['urls'])}")
+            for i, u in enumerate(group['urls'], 1):
+                print(f"  {i}. {u}")
+            print(f"{'-'*60}")
             
             # Aggregate offers from ALL URLs in this group
             combined_offers = []
             
-            for url in group['urls']:
-                print(f"  Fetching: {url}")
+            for index, url in enumerate(group['urls'], 1):
+                print(f"\n  [{index}/{len(group['urls'])}] Fetching: {url}")
                 
                 limit = 50
                 # Determine Strategy
@@ -247,25 +280,27 @@ def main():
                 # Scrape
                 try:
                     scraped = strategy.run(url)
-                    print(f"    Scraped {len(scraped)} raw offers.")
+                    raw_count = len(scraped)
                     
                     # Filtering Polish titles (Per URL)
-                    pre_filter_count = len(scraped)
                     scraped = [offer for offer in scraped if not is_polish_title(offer['title'])]
-                    filtered_count = pre_filter_count - len(scraped)
-                    if filtered_count > 0:
-                        print(f"    Discarded {filtered_count} with Polish titles.")
+                    filtered_polish_count = raw_count - len(scraped)
 
                     # Slice top N per URL
                     scraped = scraped[:limit]
                     
                     combined_offers.extend(scraped)
                     
+                    msg = f"        Found {raw_count} raw offers."
+                    if filtered_polish_count > 0:
+                        msg += f" Discarded {filtered_polish_count} (Polish)."
+                    print(msg)
+                    
                 except Exception as e:
-                    print(f"    Error scraping {url}: {e}")
+                    print(f"        Error scraping: {e}")
                     continue
 
-            print(f"  Total valid candidates for '{sheet_title}': {len(combined_offers)}")
+            print(f"\n  Total candidates for '{sheet_title}': {len(combined_offers)}")
             
             # Now we filter duplicates for the whole batch
             new_offers = []
@@ -300,7 +335,7 @@ def main():
                     'link': offer['full_url']
                 })
             
-            print(f"  Filtered out {skipped_dup} duplicates (already in sheet).")
+            print(f"  Filtered duplicates: {skipped_dup}")
             print(f"  New offers to add: {len(new_offers)}")
             
             worksheet = sheet_manager.get_or_create_worksheet(sheet_title)
@@ -309,8 +344,33 @@ def main():
             
             sheet_manager.reorder_and_format(worksheet)
             
+            # Add to stats
+            stats.append({
+                'group': sheet_title,
+                'new': len(new_offers),
+                'total_candidates': len(combined_offers)
+            })
+            
     finally:
         driver.quit()
+        
+    # === FINAL SUMMARY ===
+    print("\n\n" + "="*60)
+    print("FINAL SUMMARY REPORT")
+    print("="*60)
+    if not stats:
+        print("No groups processed.")
+    else:
+        total_new = 0
+        for s in stats:
+            print(f"[{s['group']}]".ljust(30) + f": {s['new']} new offers (from {s['total_candidates']} candidates)")
+            total_new += s['new']
+        print("-" * 60)
+        if total_new > 0:
+            print(f"TOTAL NEW OFFERS: {total_new}")
+        else:
+            print("NO NEW OFFERS FOUND.")
+    print("="*60 + "\n")
 
 if __name__ == "__main__":
     main()

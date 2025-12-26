@@ -4,7 +4,6 @@ import re
 
 class TheProtocolStrategy(ScrapingStrategy):
     def fetch(self, url):
-        print(f"Fetching {url}")
         self.driver.get(url)
         # We might need to wait for content to load, but usually getting page_source after get() works for simple interactions
         # If dynamic loading is an issue, we might need explicitly wait for #main-offers-listing
@@ -22,8 +21,6 @@ class TheProtocolStrategy(ScrapingStrategy):
         # Find all offer links
         # Based on analysis: <a class="a4pzt2q" ...>
         offer_elements = offers_container.select('a[data-test="list-item-offer"]')
-        
-        print(f"Found {len(offer_elements)} raw offers.")
         
         offers = []
         for offer_el in offer_elements:
