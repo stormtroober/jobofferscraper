@@ -1,0 +1,10 @@
+__pycache__
+.venv
+.git
+.gitignore
+*.pyc
+uv.lock
+
+# Security - Exclude from image
+credentials.json
+token.json

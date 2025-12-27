@@ -1,0 +1,13 @@
+services:
+  scraper:
+    build: .
+    container_name: job_offer_scraper
+    volumes:
+      # Mount the links file so you can edit it locally and rerun without rebuilding
+      - ./links:/app/links
+      # Persist authentication tokens
+      - ./token.json:/app/token.json
+      - ./credentials.json:/app/credentials.json
+    # Keep the interaction non-interactive
+    stdin_open: true 
+    tty: true
