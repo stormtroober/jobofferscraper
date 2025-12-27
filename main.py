@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import re
 from urllib.parse import urlparse, parse_qs
 from utils.browser import get_driver
@@ -141,25 +142,38 @@ def is_polish_title(title):
 
 def parse_links_file(filepath):
     """
-    Parses the links file. Supports two formats:
+    Parses the links file from JSON format.
+    Expected structure:
+    [
+      {"title": "Sheet Name", "urls": ["url1", "url2"]},
+      ...
+    ]
+    """
+    if not os.path.exists(filepath):
+        # Fallback to old 'links' file if json doesn't exist
+        old_links = "links"
+        if os.path.exists(old_links):
+            print(f"Warning: '{filepath}' not found. Falling back to legacy '{old_links}' format.")
+            return parse_links_file_legacy(old_links)
+        return []
+
+    try:
+        with open(filepath, "r") as f:
+            data = json.load(f)
+            return data
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from {filepath}: {e}")
+        return []
+
+def parse_links_file_legacy(filepath):
+    """
+    Parses the legacy links file. Supports two formats:
     1. Legacy: List of URLs
     2. Grouped: INI-style sections
-       [Sheet Name]
-       url1
-       url2
-    
-    Returns a list of dictionaries:
-    [
-      {'title': 'Sheet Name', 'urls': ['url1', 'url2']},
-      {'title': None, 'urls': ['url3']} # Legacy/Ungrouped
-    ]
     """
     groups = []
     current_group = {'title': None, 'urls': []}
     
-    if not os.path.exists(filepath):
-        return []
-        
     with open(filepath, "r") as f:
         for line in f:
             line = line.strip()
@@ -193,11 +207,11 @@ def main():
     args = parser.parse_args()
 
     # Read links
-    links_file = "links"
+    links_file = "links.json"
     link_groups = parse_links_file(links_file)
     
     if not link_groups:
-        print("No URLs found in 'links' file. Please add URLs to the 'links' file.")
+        print(f"No groups found in '{links_file}'. Please check the file content.")
         return
 
     print("Initializing Google Sheets Manager...")
