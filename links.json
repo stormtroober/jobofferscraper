@@ -14,5 +14,11 @@
             "https://justjoin.it/job-offers/krakow?keyword=italian&orderBy=DESC&sortBy=newest",
             "https://theprotocol.it/filtry/krakow;wp?kw=italian"
         ]
+    },
+    {
+        "title": "Reply",
+        "urls": [
+            "https://www.reply.com/en/about/careers/pl/job-search?country=pl&role=career_starter&area=technology"
+        ]
     }
 ]

@@ -9,6 +9,9 @@ from strategies.justjoinit import JustJoinITStrategy
 from strategies.nofluff import NoFluffJobsStrategy
 from strategies.theprotocol import TheProtocolStrategy
 
+from strategies.reply import ReplyStrategy
+
+
 def get_sheet_title(url):
     """Derives a readable sheet title from the URL parameters."""
     parsed = urlparse(url)
@@ -288,6 +291,9 @@ def main():
                 elif "theprotocol.it" in url:
                     strategy = TheProtocolStrategy(driver)
                     limit = 30
+                elif "reply.com" in url:
+                    strategy = ReplyStrategy(driver)
+
                 else:
                     strategy = JustJoinITStrategy(driver)
                 
@@ -323,6 +329,8 @@ def main():
             for offer in combined_offers:
                 # 1. Link Check
                 if offer['full_url'] in existing_slugs:
+                    print(f"    [LINK DUP] Skipped: {offer['title'][:50]}")
+                    print(f"               URL: {offer['full_url']}")
                     skipped_dup += 1
                     continue
                 
@@ -336,10 +344,12 @@ def main():
                         break
                 
                 if is_content_dup:
-                    # print(f"    Skipped content duplicate: {offer['title']}")
+                    print(f"    [CONTENT DUP] Skipped: {offer['title'][:50]}")
                     skipped_dup += 1
                     continue
                 
+                print(f"    [NEW] Adding: {offer['title'][:50]}")
+                print(f"          URL: {offer['full_url']}")
                 new_offers.append(offer)
                 existing_slugs.add(offer['full_url'])
                 existing_records.append({

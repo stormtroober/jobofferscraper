@@ -26,6 +26,22 @@ class SheetManager:
     def _authenticate(self):
         creds = None
         
+        # 1. Try Environment Variable (Best for Cloud/Docker)
+        env_creds = os.environ.get("GCP_SERVICE_ACCOUNT_CREDENTIALS")
+        if env_creds:
+            print("Using credentials from Environment Variable 'GCP_SERVICE_ACCOUNT_CREDENTIALS'.")
+            try:
+                creds_info = json.loads(env_creds)
+                creds = service_account.Credentials.from_service_account_info(
+                    creds_info, scopes=SCOPES)
+                self.client = gspread.authorize(creds)
+                return
+            except json.JSONDecodeError:
+                print("Error: GCP_SERVICE_ACCOUNT_CREDENTIALS is not valid JSON.")
+            except Exception as e:
+                print(f"Error loading credentials from Env Var: {e}")
+
+        # 2. Try File (Local Development)
         if os.path.exists(CREDS_FILE):
             with open(CREDS_FILE, 'r') as f:
                 try:
@@ -36,7 +52,7 @@ class SheetManager:
                     return
 
             if cred_type == 'service_account':
-                print("Using Service Account credentials.")
+                print("Using Service Account credentials from file.")
                 creds = service_account.Credentials.from_service_account_file(
                     CREDS_FILE, scopes=SCOPES)
             else:
@@ -49,12 +65,14 @@ class SheetManager:
                         creds.refresh(Request())
                     else:
                         flow = InstalledAppFlow.from_client_secrets_file(CREDS_FILE, SCOPES)
-                        creds = flow.run_local_server(port=0)
+                        # Force offline access to get a refresh token
+                        creds = flow.run_local_server(port=0, access_type='offline', prompt='consent')
                     
                     with open(TOKEN_FILE, "w") as token:
                         token.write(creds.to_json())
         else:
-            raise FileNotFoundError(f"{CREDS_FILE} not found!")
+            # If we are here, we have neither Env Var nor File
+            raise FileNotFoundError(f"Credentials not found! Set GCP_SERVICE_ACCOUNT_CREDENTIALS env var or place '{CREDS_FILE}' in the directory.")
 
         self.client = gspread.authorize(creds)
 
