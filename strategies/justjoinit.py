@@ -1,7 +1,7 @@
 import re
 import os
 from .base import ScrapingStrategy
-from utils.converter import html_to_markdown, sanitize_filename
+from services.converter import html_to_markdown, sanitize_filename
 
 class JustJoinITStrategy(ScrapingStrategy):
     def fetch(self, url):

@@ -2,7 +2,7 @@ import re
 import os
 from bs4 import BeautifulSoup
 from .base import ScrapingStrategy
-from utils.converter import html_to_markdown, sanitize_filename
+from services.converter import html_to_markdown, sanitize_filename
 
 class NoFluffJobsStrategy(ScrapingStrategy):
     def fetch(self, url):
