@@ -5,11 +5,13 @@ import re
 from urllib.parse import urlparse, parse_qs
 from utils.browser import get_driver
 from utils.sheet_manager import SheetManager
+import concurrent.futures
 from strategies.justjoinit import JustJoinITStrategy
 from strategies.nofluff import NoFluffJobsStrategy
 from strategies.theprotocol import TheProtocolStrategy
 
 from strategies.reply import ReplyStrategy
+from strategies.bulldogjob import BulldogJobStrategy
 
 
 def get_sheet_title(url):
@@ -37,6 +39,27 @@ def get_sheet_title(url):
         if keyword: parts.append(f"kw-{keyword}")
         if exp: parts.append(f"exp-{exp}")
         
+    elif "bulldogjob.com" in url:
+        # /companies/jobs/s/city,Krakow/role,backend...
+        # Extract meaningful parts from the long path
+        path = parsed.path
+        if "city,Krakow" in path:
+            parts.append("krakow")
+        
+        # Example extracting role
+        # /role,backend,analyst...
+        role_start = path.find("role,")
+        if role_start != -1:
+            role_end = path.find("/", role_start)
+            if role_end == -1: role_end = len(path)
+            roles = path[role_start+5:role_end]
+            # Just take the first one or "custom"
+            first_role = roles.split(",")[0]
+            parts.append(first_role)
+
+        if "experienceLevel,junior" in path:
+            parts.append("junior")
+
     elif "nofluffjobs.com" in url:
         # /pl/krakow?criteria=seniority%3Djunior
         # Extract location from path
@@ -204,6 +227,55 @@ def parse_links_file_legacy(filepath):
 
 import argparse
 
+def process_url(url):
+    """
+    Worker function to scrape a single URL in its own browser instance.
+    Returns (url, offers_list).
+    """
+    print(f"  [Worker] Starting: {url}")
+    driver = get_driver(headless=True)
+    offers = []
+    
+    try:
+        limit = 50
+        # Determine Strategy
+        if "nofluffjobs.com" in url:
+            strategy = NoFluffJobsStrategy(driver)
+        elif "theprotocol.it" in url:
+            strategy = TheProtocolStrategy(driver)
+            limit = 30
+        elif "reply.com" in url:
+            strategy = ReplyStrategy(driver)
+        elif "bulldogjob.com" in url:
+            strategy = BulldogJobStrategy(driver)
+        else:
+            strategy = JustJoinITStrategy(driver)
+        
+        # Scrape
+        raw = strategy.run(url)
+        raw_count = len(raw)
+        
+        # Filtering Polish titles
+        filtered = [offer for offer in raw if not is_polish_title(offer['title'])]
+        filtered_polish_count = raw_count - len(filtered)
+        
+        # Slice top N
+        offers = filtered[:limit]
+        
+        msg = f"  [Worker] Done {url}: Found {raw_count} raw"
+        if filtered_polish_count > 0:
+            msg += f", {filtered_polish_count} Polish discarded"
+        msg += f". Keeping {len(offers)}."
+        print(msg)
+        
+    except Exception as e:
+        print(f"  [Worker] Error scraping {url}: {e}")
+        offers = []
+    finally:
+        driver.quit()
+        
+    return url, offers
+
 def main():
     parser = argparse.ArgumentParser(description="Job Offer Scraper")
     parser.add_argument("--organize-only", action="store_true", help="Only organize sheets (process discards/reorder) without scraping")
@@ -254,129 +326,110 @@ def main():
     existing_records = sheet_manager.get_all_existing_records()
     print(f"Loaded {len(existing_records)} existing records.")
 
-    driver = get_driver(headless=True)
-    
     # Statistics for the summary
     stats = []
 
-    try:
-        for group in link_groups:
-            # Determine Sheet Title
-            sheet_title = group['title']
-            
-            if not sheet_title:
-                if group['urls']:
-                    # Fallback to deriving from first URL
-                    sheet_title = get_sheet_title(group['urls'][0])
-                else:
-                    continue 
+    # 1. GATHER ALL UNIQUE URLS
+    all_urls = []
+    for group in link_groups:
+        all_urls.extend(group['urls'])
+    
+    unique_urls = list(set(all_urls))
+    print(f"\n{'='*60}")
+    print(f"STARTING PARALLEL SCRAPING")
+    print(f"Unique URLs to process: {len(unique_urls)}")
+    print(f"Max Workers: 8")
+    print(f"{'='*60}")
 
-            print(f"\n{'='*60}")
-            print(f"Processing Group: '{sheet_title}'")
-            print(f"Sources: {len(group['urls'])}")
-            for i, u in enumerate(group['urls'], 1):
-                print(f"  {i}. {u}")
-            print(f"{'-'*60}")
-            
-            # Aggregate offers from ALL URLs in this group
-            combined_offers = []
-            
-            for index, url in enumerate(group['urls'], 1):
-                print(f"\n  [{index}/{len(group['urls'])}] Fetching: {url}")
-                
-                limit = 50
-                # Determine Strategy
-                if "nofluffjobs.com" in url:
-                    strategy = NoFluffJobsStrategy(driver)
-                elif "theprotocol.it" in url:
-                    strategy = TheProtocolStrategy(driver)
-                    limit = 30
-                elif "reply.com" in url:
-                    strategy = ReplyStrategy(driver)
+    # 2. PARALLEL SCRAPE
+    scraped_data = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_url = {executor.submit(process_url, url): url for url in unique_urls}
+        
+        for future in concurrent.futures.as_completed(future_to_url):
+            url = future_to_url[future]
+            try:
+                _, offers = future.result()
+                scraped_data[url] = offers
+            except Exception as e:
+                print(f"CRITICAL ERROR retrieving results for {url}: {e}")
+                scraped_data[url] = []
 
-                else:
-                    strategy = JustJoinITStrategy(driver)
-                
-                # Scrape
-                try:
-                    scraped = strategy.run(url)
-                    raw_count = len(scraped)
-                    
-                    # Filtering Polish titles (Per URL)
-                    scraped = [offer for offer in scraped if not is_polish_title(offer['title'])]
-                    filtered_polish_count = raw_count - len(scraped)
+    print(f"\n{'='*60}")
+    print("Scraping complete. Updating Sheets...")
+    print(f"{'='*60}")
 
-                    # Slice top N per URL
-                    scraped = scraped[:limit]
-                    
-                    combined_offers.extend(scraped)
-                    
-                    msg = f"        Found {raw_count} raw offers."
-                    if filtered_polish_count > 0:
-                        msg += f" Discarded {filtered_polish_count} (Polish)."
-                    print(msg)
-                    
-                except Exception as e:
-                    print(f"        Error scraping: {e}")
-                    continue
-
-            print(f"\n  Total candidates for '{sheet_title}': {len(combined_offers)}")
+    # 3. UPDATE SHEETS SEQUENTIALLY
+    for group in link_groups:
+        # Determine Sheet Title
+        sheet_title = group['title']
+        
+        if not sheet_title:
+            if group['urls']:
+                sheet_title = get_sheet_title(group['urls'][0])
+            else:
+                continue 
+        
+        # Aggregate offers from PRE-SCRAPED data
+        combined_offers = []
+        for url in group['urls']:
+            if url in scraped_data:
+                combined_offers.extend(scraped_data[url])
+        
+        print(f"\nProcessing Group: '{sheet_title}'")
+        print(f"  Total candidates: {len(combined_offers)}")
+        
+        # Now we filter duplicates for the whole batch
+        new_offers = []
+        skipped_dup = 0
+        
+        for offer in combined_offers:
+            # 1. Link Check
+            if offer['full_url'] in existing_slugs:
+                # Optional: print less verbose if needed
+                # print(f"    [LINK DUP] Skipped: {offer['title'][:50]}")
+                skipped_dup += 1
+                continue
             
-            # Now we filter duplicates for the whole batch
-            new_offers = []
-            skipped_dup = 0
+            # 2. Content Check (Tuple Match)
+            is_content_dup = False
+            for record in existing_records:
+                if (offer['title'] == record['title'] and 
+                    offer['company'] == record['company'] and
+                    offer['tags'] == record['tags']):
+                    is_content_dup = True
+                    break
             
-            for offer in combined_offers:
-                # 1. Link Check
-                if offer['full_url'] in existing_slugs:
-                    print(f"    [LINK DUP] Skipped: {offer['title'][:50]}")
-                    print(f"               URL: {offer['full_url']}")
-                    skipped_dup += 1
-                    continue
-                
-                # 2. Content Check (Tuple Match)
-                is_content_dup = False
-                for record in existing_records:
-                    if (offer['title'] == record['title'] and 
-                        offer['company'] == record['company'] and
-                        offer['tags'] == record['tags']):
-                        is_content_dup = True
-                        break
-                
-                if is_content_dup:
-                    print(f"    [CONTENT DUP] Skipped: {offer['title'][:50]}")
-                    skipped_dup += 1
-                    continue
-                
-                print(f"    [NEW] Adding: {offer['title'][:50]}")
-                print(f"          URL: {offer['full_url']}")
-                new_offers.append(offer)
-                existing_slugs.add(offer['full_url'])
-                existing_records.append({
-                    'title': offer['title'],
-                    'company': offer['company'],
-                    'tags': offer['tags'],
-                    'link': offer['full_url']
-                })
+            if is_content_dup:
+                # print(f"    [CONTENT DUP] Skipped: {offer['title'][:50]}")
+                skipped_dup += 1
+                continue
             
-            print(f"  Filtered duplicates: {skipped_dup}")
-            print(f"  New offers to add: {len(new_offers)}")
-            
-            worksheet = sheet_manager.get_or_create_worksheet(sheet_title)
-            if new_offers:
-                sheet_manager.add_offers(worksheet, new_offers, prepend=True)
-            
-            sheet_manager.reorder_and_format(worksheet)
-            
-            # Add to stats
-            stats.append({
-                'group': sheet_title,
-                'new': len(new_offers),
-                'total_candidates': len(combined_offers)
+            print(f"    [NEW] Adding: {offer['title'][:50]}")
+            new_offers.append(offer)
+            existing_slugs.add(offer['full_url'])
+            existing_records.append({
+                'title': offer['title'],
+                'company': offer['company'],
+                'tags': offer['tags'],
+                'link': offer['full_url']
             })
-            
-    finally:
-        driver.quit()
+        
+        print(f"  Filtered duplicates: {skipped_dup}")
+        print(f"  New offers to add: {len(new_offers)}")
+        
+        worksheet = sheet_manager.get_or_create_worksheet(sheet_title)
+        if new_offers:
+            sheet_manager.add_offers(worksheet, new_offers, prepend=True)
+        
+        sheet_manager.reorder_and_format(worksheet)
+        
+        # Add to stats
+        stats.append({
+            'group': sheet_title,
+            'new': len(new_offers),
+            'total_candidates': len(combined_offers)
+        })
         
     # === FINAL SUMMARY ===
     print("\n\n" + "="*60)
