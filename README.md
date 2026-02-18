@@ -122,7 +122,7 @@ Before writing anything, the scraper loads all existing entries from the spreads
 The project includes a pytest suite covering the core business logic — no browser or Google Sheets connection required to run it.
 
 ```bash
-.venv/bin/python -m pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 Test coverage:
