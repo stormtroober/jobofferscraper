@@ -117,6 +117,24 @@ Before writing anything, the scraper loads all existing entries from the spreads
 - **Recency**: offers older than 10 days are discarded (based on the platform's own "posted X days ago" label)
 - **Language**: Polish-language job titles are filtered out automatically, keeping results in English
 
+## Testing
+
+The project includes a pytest suite covering the core business logic — no browser or Google Sheets connection required to run it.
+
+```bash
+.venv/bin/python -m pytest tests/ -v
+```
+
+Test coverage:
+
+| Module | What is tested |
+|---|---|
+| `tests/test_filters.py` | Recency detection and Polish title filtering |
+| `tests/test_parsers.py` | URL-to-sheet-title derivation and JSON config loading |
+| `tests/test_deduplication.py` | Duplicate detection logic (by URL and by content) |
+
+External dependencies (Selenium, Google Sheets API) are intentionally excluded from the test scope and would require integration tests with proper mocking or a live environment.
+
 ## License
 
 MIT
