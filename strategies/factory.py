@@ -3,6 +3,7 @@ from strategies.nofluff import NoFluffJobsStrategy
 from strategies.theprotocol import TheProtocolStrategy
 from strategies.reply import ReplyStrategy
 from strategies.bulldogjob import BulldogJobStrategy
+from strategies.builtin import BuiltInStrategy
 
 def get_strategy(url, driver):
     """
@@ -16,5 +17,7 @@ def get_strategy(url, driver):
         return ReplyStrategy(driver)
     elif "bulldogjob.com" in url:
         return BulldogJobStrategy(driver)
+    elif "builtin.com" in url:
+        return BuiltInStrategy(driver)
     else:
         return JustJoinITStrategy(driver)
