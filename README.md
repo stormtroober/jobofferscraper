@@ -13,6 +13,7 @@ Supported platforms:
 - [TheProtocol.it](https://theprotocol.it)
 - [BulldogJob](https://bulldogjob.com)
 - [Reply Careers](https://www.reply.com)
+- [BuiltIn](https://builtin.com)
 
 ## Project structure
 
@@ -34,7 +35,8 @@ Supported platforms:
 │   ├── nofluff.py
 │   ├── theprotocol.py
 │   ├── bulldogjob.py
-│   └── reply.py
+│   ├── reply.py
+│   └── builtin.py
 ├── links.json          # Search URLs configuration
 ├── main.py
 ├── Dockerfile
@@ -119,7 +121,7 @@ Before writing anything, the scraper loads all existing entries from the spreads
 
 ## Testing
 
-The project includes a pytest suite covering the core business logic — no browser or Google Sheets connection required to run it.
+The project includes a comprehensive pytest suite covering both core business logic and live scraping strategies.
 
 ```bash
 python -m pytest tests/ -v
@@ -129,11 +131,16 @@ Test coverage:
 
 | Module | What is tested |
 |---|---|
-| `tests/test_filters.py` | Recency detection and Polish title filtering |
-| `tests/test_parsers.py` | URL-to-sheet-title derivation and JSON config loading |
-| `tests/test_deduplication.py` | Duplicate detection logic (by URL and by content) |
+| `tests/test_filters.py` | Recency detection and Polish title filtering. |
+| `tests/test_parsers.py` | URL-to-sheet-title derivation and JSON config loading. |
+| `tests/test_deduplication.py` | Duplicate detection logic (by URL and by content). |
+| `tests/test_strategies_live.py` | **Live integration tests** for all scraping strategies (JustJoin, BuiltIn, etc.). Verifies selectors against real sites. |
 
-External dependencies (Selenium, Google Sheets API) are intentionally excluded from the test scope and would require integration tests with proper mocking or a live environment.
+### CI/CD
+
+Each push to `main` triggers a GitHub Actions workflow that runs the full test suite to ensure no regressions in logic or selectors.
+
+External dependencies (Google Sheets API) are mocked or excluded from the test scope to allow offline/CI execution of business logic tests. Live strategy tests require internet access but no authentication.
 
 ## License
 
