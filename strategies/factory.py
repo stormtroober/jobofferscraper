@@ -6,6 +6,7 @@ from strategies.bulldogjob import BulldogJobStrategy
 from strategies.builtin import BuiltInStrategy
 from strategies.uber import UberStrategy
 from strategies.reversegroup import ReverseGroupStrategy
+from strategies.accenture import AccentureStrategy
 
 def get_strategy(url, driver):
     """
@@ -25,5 +26,7 @@ def get_strategy(url, driver):
         return UberStrategy(driver)
     elif "reversegroup.io" in url:
         return ReverseGroupStrategy(driver)
+    elif "accenture.com" in url:
+        return AccentureStrategy(driver)
     else:
         return JustJoinITStrategy(driver)
