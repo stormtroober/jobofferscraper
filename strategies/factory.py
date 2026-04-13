@@ -4,6 +4,8 @@ from strategies.theprotocol import TheProtocolStrategy
 from strategies.reply import ReplyStrategy
 from strategies.bulldogjob import BulldogJobStrategy
 from strategies.builtin import BuiltInStrategy
+from strategies.uber import UberStrategy
+from strategies.reversegroup import ReverseGroupStrategy
 
 def get_strategy(url, driver):
     """
@@ -19,5 +21,9 @@ def get_strategy(url, driver):
         return BulldogJobStrategy(driver)
     elif "builtin.com" in url:
         return BuiltInStrategy(driver)
+    elif "uber.com" in url:
+        return UberStrategy(driver)
+    elif "reversegroup.io" in url:
+        return ReverseGroupStrategy(driver)
     else:
         return JustJoinITStrategy(driver)

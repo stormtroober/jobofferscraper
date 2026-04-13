@@ -22,5 +22,17 @@
         "urls": [
             "https://www.reply.com/en/about/careers/pl/job-search?country=pl&role=career_starter&area=technology"
         ]
+    },
+    {
+        "title": "Uber",
+        "urls": [
+            "https://www.uber.com/pl/en/careers/list/?location=POL--Krakow"
+        ]
+    },
+    {
+        "title": "ReverseGroup",
+        "urls": [
+            "https://careers.reversegroup.io/jobs"
+        ]
     }
 ]
