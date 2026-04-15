@@ -18,7 +18,8 @@ class LocalLLMEvaluator:
             print(f"Caricamento modello LLM da {model_path}...")
             self.model = Llama(
                 model_path=model_path,
-                verbose=False
+                n_ctx=16384,
+                verbose=False,
             )
 
     def evaluate_job(self, job_title, company, job_description_text, master_cv_text):
@@ -29,36 +30,26 @@ class LocalLLMEvaluator:
         if not self.model:
             return "Errore: Modello LLM non inizializzato correttamente."
 
-        prompt = f"""
-Sei un analista tecnico esperto di recruiting. Il tuo compito è valutare la compatibilità tra un'offerta di lavoro e il profilo di un candidato basandoti su un documento di background esteso.
+        user_message = f"""Sei un recruiter tecnico. Confronta il profilo con la JD e rispondi in modo brevissimo.
 
-### DOCUMENTO DI BACKGROUND DEL CANDIDATO (Informazioni complete):
+## PROFILO:
 {master_cv_text}
 
-### OFFERTA DI LAVORO:
-Titolo: {job_title}
-Azienda: {company}
-
-### JOB DESCRIPTION:
+## JD ({job_title} @ {company}):
 {job_description_text}
 
-### RICHIESTA:
-Analizza attentamente se le competenze richieste nella Job Description sono presenti nel documento di background del candidato. 
-Genera un report sintetico con questa struttura:
+## OUTPUT (solo questo, nient'altro):
+MATCH: XX%
+GAP:
+- <gap 1>
+- <gap 2>
+..."""
 
-1. **MATCH SCORE**: Esprimi una percentuale (0-100%) che rappresenti quanto il profilo copre i requisiti obbligatori e opzionali.
-2. **ANALISI COMPETENZE PRESENTI**: Elenca le tecnologie e le esperienze confermate dal documento di background che corrispondono alla JD.
-3. **GAP TECNICI & MANCANZE**: Identifica chiaramente cosa richiede l'azienda che NON è presente o non è esplicitato nel background del candidato.
-
-NON suggerire modifiche al CV. Sii oggettivo e brutale nella valutazione del Match Score.
-"""
-
-        print(f"Valutazione match per {job_title} @ {company}...")
-        response = self.model(
-            prompt,
-            max_tokens=1500,
-            temperature=0.1, # Più deterministico per una valutazione analitica
-            stop=["###"]
+        print(f"Valutazione match per {job_title} @ {company}... (prompt: ~{len(user_message)//4} token stimati)")
+        response = self.model.create_chat_completion(
+            messages=[{"role": "user", "content": user_message}],
+            max_tokens=300,
+            temperature=0.1,
         )
 
-        return response['choices'][0]['text'].strip()
+        return response['choices'][0]['message']['content'].strip()
