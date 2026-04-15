@@ -5,7 +5,7 @@ from services.llm import LocalLLMEvaluator
 def main():
     # 1. Configurazione test rapido
     test_url = "https://theprotocol.it/szczegoly/praca/data-scientist-warszawa-aleje-jerozolimskie-44,oferta,dc570000-1d37-3e55-45dd-08de9abff320"
-    cv_path = os.path.abspath(os.path.expanduser("data/master_cv.txt"))
+    cv_path = os.path.abspath(os.path.expanduser("data/master_cv.md"))
     model_path = os.path.abspath(os.path.expanduser("~/llama.cpp/models/gemma_e4b_q8.gguf"))
     
     print(f"=== TEST RAPIDO SPECIFICO ===")

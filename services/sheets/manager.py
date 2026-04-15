@@ -108,6 +108,62 @@ class SheetManager(GoogleSheetsClient):
             
         return all_records
 
+    def get_saved_offers(self):
+        """
+        Returns a list of dicts for every row whose Status == 'SAVE'
+        across all worksheets (Trash excluded).
+
+        Each dict: {title, company, tags, link, sheet}
+        """
+        results = []
+        if not self.spreadsheet:
+            return results
+
+        try:
+            worksheets = self.spreadsheet.worksheets()
+            for ws in worksheets:
+                if ws.title == "Trash":
+                    continue
+
+                rows = ws.get_all_values()
+                if not rows:
+                    continue
+
+                header = rows[0]
+                col = {h: i for i, h in enumerate(header)}
+
+                t_idx  = col.get("Title", -1)
+                c_idx  = col.get("Company", -1)
+                tg_idx = col.get("Tags", -1)
+                s_idx  = col.get("Status", -1)
+                l_idx  = col.get("Link", -1)
+
+                if s_idx == -1:
+                    continue
+
+                for row in rows[1:]:
+                    if len(row) <= s_idx:
+                        continue
+                    status = row[s_idx].strip().upper()
+                    if status != "SAVE":
+                        continue
+
+                    def _get(idx):
+                        return row[idx].strip() if idx != -1 and idx < len(row) else ""
+
+                    results.append({
+                        "title":   _get(t_idx),
+                        "company": _get(c_idx),
+                        "tags":    _get(tg_idx),
+                        "link":    _get(l_idx),
+                        "sheet":   ws.title,
+                    })
+
+        except Exception as e:
+            print(f"Error fetching SAVE offers: {e}")
+
+        return results
+
     def process_discards(self):
         """Moves rows with Status='DISCARD' or 'OUT' to a 'Trash' worksheet."""
         trash_ws = self.get_or_create_worksheet("Trash")
