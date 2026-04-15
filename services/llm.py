@@ -18,7 +18,6 @@ class LocalLLMEvaluator:
             print(f"Caricamento modello LLM da {model_path}...")
             self.model = Llama(
                 model_path=model_path,
-                n_ctx=8192,
                 verbose=False
             )
 

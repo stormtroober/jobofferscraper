@@ -14,7 +14,6 @@ class JobScraperApp:
         parser = argparse.ArgumentParser(description="Job Offer Scraper")
         parser.add_argument("--organize-only", action="store_true", help="Only organize sheets (process discards/reorder) without scraping")
         parser.add_argument("--workers", type=int, default=8, help="Number of concurrent workers for scraping (default: 8)")
-        parser.add_argument("--eval", action="store_true", help="Evaluate all SAVE offers against the master CV using the local LLM")
         return parser.parse_args()
 
     def run(self):
@@ -26,21 +25,16 @@ class JobScraperApp:
         if not self._init_services():
             return
 
-        # 3. Eval Mode — read-only, skip discards processing
-        if self.args.eval:
-            self._run_eval_mode()
-            return
-
-        # 4. Process Discards
+        # 3. Process Discards
         print("Processing discards (moving to Trash)...")
         self.sheet_manager.process_discards()
 
-        # 5. Organize Only Mode
+        # 4. Organize Only Mode
         if self.args.organize_only:
             self._run_organize_only()
             return
 
-        # 6. Full Scrape Mode
+        # 5. Full Scrape Mode
         self._run_full_scrape()
 
     def _load_config(self):
@@ -59,12 +53,6 @@ class JobScraperApp:
         except Exception as e:
             print(f"Failed to initialize SheetManager: {e}")
             return False
-
-    def _run_eval_mode(self):
-        from core.eval_runner import EvalRunner
-        print("\n=== EVAL MODE ===")
-        runner = EvalRunner(self.sheet_manager)
-        runner.run()
 
     def _run_organize_only(self):
         print("\n=== ORGANIZE ONLY MODE ===")
