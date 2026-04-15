@@ -7,6 +7,7 @@ from strategies.builtin import BuiltInStrategy
 from strategies.uber import UberStrategy
 from strategies.reversegroup import ReverseGroupStrategy
 from strategies.accenture import AccentureStrategy
+from strategies.motorola import MotorolaStrategy
 
 def get_strategy(url, driver):
     """
@@ -28,5 +29,7 @@ def get_strategy(url, driver):
         return ReverseGroupStrategy(driver)
     elif "accenture.com" in url:
         return AccentureStrategy(driver)
+    elif "myworkdayjobs.com" in url:
+        return MotorolaStrategy(driver)
     else:
         return JustJoinITStrategy(driver)

@@ -63,9 +63,8 @@ class SheetManager(GoogleSheetsClient):
                             pass
                     else:
                         if "://" in cell:
-                            raw_url = cell.strip()
-                            clean_url = raw_url.split('?')[0]
-                            urls.add(clean_url)
+                            raw_url = str(cell).strip()
+                            urls.add(raw_url)
         
         return urls
 
@@ -167,10 +166,14 @@ class SheetManager(GoogleSheetsClient):
         """Appends or prepends new offers to the worksheet, ensuring schema compliance."""
         rows_to_add = []
         for offer in offers:
+            tags_val = offer.get("tags", "")
+            if isinstance(tags_val, list):
+                tags_val = ", ".join(str(t) for t in tags_val)
+                
             row = [
                 offer['title'],
                 offer.get("company", ""),
-                offer.get("tags", ""),
+                tags_val,
                 "NEW", 
                 offer.get("full_url", offer.get("link", "")) 
             ]

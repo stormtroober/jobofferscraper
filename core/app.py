@@ -163,10 +163,15 @@ class JobScraperApp:
             
             # 2. Content Check
             is_content_dup = False
+            
+            offer_tags = offer.get('tags', '')
+            if isinstance(offer_tags, list):
+                offer_tags = ", ".join(str(t) for t in offer_tags)
+                
             for record in existing_records:
                 if (offer['title'] == record['title'] and 
                     offer['company'] == record['company'] and
-                    offer['tags'] == record['tags']):
+                    offer_tags == record['tags']):
                     is_content_dup = True
                     break
             
