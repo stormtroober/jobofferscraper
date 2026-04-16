@@ -19,7 +19,19 @@ TEST_URLS = [
     # Reply
     "https://www.reply.com/en/about/careers/pl/job-search?country=pl&role=career_starter&area=technology",
     # BuiltIn
-    "https://builtin.com/jobs/hybrid/office/entry-level/junior?daysSinceUpdated=3&city=Krak%C3%B3w&state=Ma%C5%82opolskie&country=POL&allLocations=true"
+    "https://builtin.com/jobs/hybrid/office/entry-level/junior?daysSinceUpdated=3&city=Krak%C3%B3w&state=Ma%C5%82opolskie&country=POL&allLocations=true",
+    # Uber
+    "https://www.uber.com/pl/en/careers/list/?location=POL--Krakow",
+    # ReverseGroup
+    "https://careers.reversegroup.io/jobs",
+    # Accenture
+    "https://www.accenture.com/pl-en/careers/jobsearch?vw=0&is_rj=0&pg=1&ct=Krakow&jt=Early%20Career",
+    # Motorola
+    "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers?q=junior&jobFamilyGroup=c3fc17b768e842e39b7192f0bf4cb0f1&jobFamilyGroup=2161bef685534428b91fad96fc9069b4&locations=cdb6c301cead01c0fd6255fbbe0073b9&locationCountry=131d5ac7e3ee4d7b962bdc96e498e412",
+    # Cognizant
+    "https://careers.cognizant.com/emea-en/jobs/?keyword=&industry=Technology&location=Krak%C3%B3w%2C+Poland&radius=40&lat=50.06465009999999&lng=19.9449799&cname=Poland&ccode=PL&pagesize=20",
+    # HSBC
+    "https://mycareer.hsbc.com/en_GB/external/SearchJobs/?1017=%5B709873%5D&1017_format=812&1018=%5B2729938%5D&1018_format=813&1019=%5B2730530%5D&1019_format=814&1020=%5B79341%5D&1020_format=815&1023=%5B1248547%5D&1023_format=913&1368=-14+days&listFilterMode=1&pipelineRecordsPerPage=10",
 ]
 
 @pytest.fixture(scope="module")
