@@ -7,7 +7,7 @@ BASE_URL = "https://careers.cognizant.com"
 class CognizantStrategy(ScrapingStrategy):
     def fetch(self, url):
         self.driver.get(url)
-        time.sleep(8)  # JS-rendered via Phenom People ATS
+        time.sleep(12)  # JS-rendered via Phenom People ATS
         return self.driver.page_source
 
     def parse(self, html_content):
