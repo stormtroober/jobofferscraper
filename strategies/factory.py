@@ -9,6 +9,7 @@ from strategies.reversegroup import ReverseGroupStrategy
 from strategies.accenture import AccentureStrategy
 from strategies.motorola import MotorolaStrategy
 from strategies.cognizant import CognizantStrategy
+from strategies.hsbc import HSBCStrategy
 
 def get_strategy(url, driver):
     """
@@ -34,5 +35,7 @@ def get_strategy(url, driver):
         return MotorolaStrategy(driver)
     elif "careers.cognizant.com" in url:
         return CognizantStrategy(driver)
+    elif "mycareer.hsbc.com" in url:
+        return HSBCStrategy(driver)
     else:
         return JustJoinITStrategy(driver)

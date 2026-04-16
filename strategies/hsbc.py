@@ -2,12 +2,12 @@ import time
 from bs4 import BeautifulSoup
 from .base import ScrapingStrategy
 
-BASE_URL = "https://careers.cognizant.com"
+BASE_URL = "https://mycareer.hsbc.com"
 
-class CognizantStrategy(ScrapingStrategy):
+class HSBCStrategy(ScrapingStrategy):
     def fetch(self, url):
         self.driver.get(url)
-        time.sleep(8)  # JS-rendered via Phenom People ATS
+        time.sleep(6)  # JS-rendered ATS
         return self.driver.page_source
 
     def parse(self, html_content):
@@ -15,11 +15,11 @@ class CognizantStrategy(ScrapingStrategy):
         offers = []
         seen_urls = set()
 
-        cards = soup.select('div.card.card-job')
+        cards = soup.select('article.article--result')
 
         for card in cards:
             try:
-                a_tag = card.select_one('h2.card-title a.stretched-link')
+                a_tag = card.select_one('h3 a')
                 if not a_tag:
                     continue
 
@@ -27,23 +27,21 @@ class CognizantStrategy(ScrapingStrategy):
                 href = a_tag.get('href', '')
                 full_url = f"{BASE_URL}{href}" if href.startswith('/') else href
 
-                if full_url in seen_urls:
+                if not full_url or full_url in seen_urls:
                     continue
                 seen_urls.add(full_url)
 
-                job_id = card.get('data-id', '')
-                slug = job_id if job_id else href.split('/')[-2]
+                slug = full_url.rstrip('/').split('/')[-1]
 
-                meta_items = [li.get_text(strip=True) for li in card.select('ul.list-inline.job-meta li.list-inline-item')]
-                location = meta_items[0] if meta_items else 'Unknown'
-                tags = meta_items[1] if len(meta_items) > 1 else ''
+                location_tag = card.select_one('span.location')
+                location = location_tag.get_text(strip=True) if location_tag else 'Unknown'
 
-                if 'krakow' not in location.lower() and 'kraków' not in location.lower() and 'cracow' not in location.lower():
-                    continue
+                tag_items = card.select('div.article__header__text__subtitle .item__container span.article--item:not(.item--location)')
+                tags = ', '.join(' '.join(t.get_text().split()) for t in tag_items if t.get_text(strip=True))
 
                 offers.append({
                     'title': title,
-                    'company': 'Cognizant',
+                    'company': 'HSBC',
                     'salary': 'Undisclosed',
                     'location': location,
                     'tags': tags,
@@ -52,7 +50,7 @@ class CognizantStrategy(ScrapingStrategy):
                 })
 
             except Exception as e:
-                print(f"Error parsing Cognizant offer: {e}")
+                print(f"Error parsing HSBC offer: {e}")
                 continue
 
         return offers
