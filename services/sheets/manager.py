@@ -1,6 +1,13 @@
+import re
 import gspread
 from .client import GoogleSheetsClient
 from .formatter import SheetFormatter
+
+_URL_RE = re.compile(r'https?://[^\s"\']+')
+
+
+def _normalize_url(url: str) -> str:
+    return url.rstrip('/')
 
 class SheetManager(GoogleSheetsClient):
     """
@@ -42,30 +49,19 @@ class SheetManager(GoogleSheetsClient):
         return all_urls
 
     def get_existing_slugs(self, worksheet):
-        """Returns a set of existing link slugs (or full URLs) from the sheet. Robust scan."""
+        """Returns a set of normalized URLs from the sheet. Handles plain URLs and HYPERLINK formulas."""
         urls = set()
         try:
             rows = worksheet.get_all_values(value_render_option='FORMULA')
         except Exception:
             return set()
-            
-        # Robust scan: Look for http links in ANY cell
+
         for row in rows:
             for cell in row:
                 if isinstance(cell, str) and "http" in cell:
-                    if "HYPERLINK" in cell:
-                        try:
-                            parts = cell.split('"')
-                            for p in parts:
-                                if "http" in p:
-                                    urls.add(p)
-                        except:
-                            pass
-                    else:
-                        if "://" in cell:
-                            raw_url = str(cell).strip()
-                            urls.add(raw_url)
-        
+                    for match in _URL_RE.findall(cell):
+                        urls.add(_normalize_url(match))
+
         return urls
 
     def get_all_existing_records(self):

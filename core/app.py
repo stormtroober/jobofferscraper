@@ -157,7 +157,8 @@ class JobScraperApp:
         
         for offer in combined_offers:
             # 1. Link Check
-            if offer['full_url'] in existing_slugs:
+            normalized_url = offer['full_url'].rstrip('/')
+            if normalized_url in existing_slugs:
                 skipped_dup += 1
                 continue
             
@@ -181,7 +182,7 @@ class JobScraperApp:
             
             print(f"    [NEW] Adding: {offer['title'][:50]}")
             new_offers.append(offer)
-            existing_slugs.add(offer['full_url'])
+            existing_slugs.add(normalized_url)
             existing_records.append({
                 'title': offer['title'],
                 'company': offer['company'],
