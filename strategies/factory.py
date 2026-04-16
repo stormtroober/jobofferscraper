@@ -11,6 +11,7 @@ from strategies.motorola import MotorolaStrategy
 from strategies.cognizant import CognizantStrategy
 from strategies.hsbc import HSBCStrategy
 from strategies.epam import EPAMStrategy
+from strategies.aristocrat import AristocratStrategy
 
 def get_strategy(url, driver):
     """
@@ -32,6 +33,8 @@ def get_strategy(url, driver):
         return ReverseGroupStrategy(driver)
     elif "accenture.com" in url:
         return AccentureStrategy(driver)
+    elif "aristocrat.wd3.myworkdayjobs.com" in url:
+        return AristocratStrategy(driver)
     elif "myworkdayjobs.com" in url:
         return MotorolaStrategy(driver)
     elif "careers.cognizant.com" in url:

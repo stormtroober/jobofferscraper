@@ -87,7 +87,7 @@ class JobScraperApp:
             all_urls.extend(group['urls'])
         unique_urls = list(set(all_urls))
 
-        workers = self.args.workers if self.args.workers is not None else len(unique_urls)
+        workers = self.args.workers if self.args.workers is not None else min(8, len(unique_urls))
 
         print(f"\n{'='*60}")
         print(f"STARTING PARALLEL SCRAPING")

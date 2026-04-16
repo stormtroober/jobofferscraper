@@ -34,6 +34,8 @@ TEST_URLS = [
     "https://mycareer.hsbc.com/en_GB/external/SearchJobs/?1017=%5B709873%5D&1017_format=812&1018=%5B2729938%5D&1018_format=813&1019=%5B2730530%5D&1019_format=814&1020=%5B79341%5D&1020_format=815&1023=%5B1248547%5D&1023_format=913&1368=-14+days&listFilterMode=1&pipelineRecordsPerPage=10",
     # EPAM
     "https://careers.epam.com/en/jobs/poland?city=4060741400006011394&seniority=junior&sort_by=relevance",
+    # Aristocrat
+    "https://aristocrat.wd3.myworkdayjobs.com/AristocratExternalCareersSite?locationCountry=131d5ac7e3ee4d7b962bdc96e498e412&locationRegionStateProvince=1796189bbfb44244a4a7242ec41d28cd&jobFamilyGroup=5870f6ab58e61001e2a54cc953330000",
 ]
 
 @pytest.fixture(scope="module")
