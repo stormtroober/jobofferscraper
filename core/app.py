@@ -13,7 +13,7 @@ class JobScraperApp:
     def _parse_args(self):
         parser = argparse.ArgumentParser(description="Job Offer Scraper")
         parser.add_argument("--organize-only", action="store_true", help="Only organize sheets (process discards/reorder) without scraping")
-        parser.add_argument("--workers", type=int, default=8, help="Number of concurrent workers for scraping (default: 8)")
+        parser.add_argument("--workers", type=int, default=None, help="Number of concurrent workers (default: one per URL)")
         return parser.parse_args()
 
     def run(self):
@@ -87,15 +87,17 @@ class JobScraperApp:
             all_urls.extend(group['urls'])
         unique_urls = list(set(all_urls))
 
+        workers = self.args.workers if self.args.workers is not None else len(unique_urls)
+
         print(f"\n{'='*60}")
         print(f"STARTING PARALLEL SCRAPING")
         print(f"Unique URLs to process: {len(unique_urls)}")
-        print(f"Max Workers: {self.args.workers}")
+        print(f"Max Workers: {workers}")
         print(f"{'='*60}")
 
         # Scrape
         scraped_data = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.args.workers) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_url = {executor.submit(process_url, url): url for url in unique_urls}
             
             for future in concurrent.futures.as_completed(future_to_url):

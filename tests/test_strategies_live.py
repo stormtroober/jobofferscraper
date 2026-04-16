@@ -32,6 +32,8 @@ TEST_URLS = [
     "https://careers.cognizant.com/emea-en/jobs/?keyword=&industry=Technology&location=Krak%C3%B3w%2C+Poland&radius=40&lat=50.06465009999999&lng=19.9449799&cname=Poland&ccode=PL&pagesize=20",
     # HSBC
     "https://mycareer.hsbc.com/en_GB/external/SearchJobs/?1017=%5B709873%5D&1017_format=812&1018=%5B2729938%5D&1018_format=813&1019=%5B2730530%5D&1019_format=814&1020=%5B79341%5D&1020_format=815&1023=%5B1248547%5D&1023_format=913&1368=-14+days&listFilterMode=1&pipelineRecordsPerPage=10",
+    # EPAM
+    "https://careers.epam.com/en/jobs/poland?city=4060741400006011394&seniority=junior&sort_by=relevance",
 ]
 
 @pytest.fixture(scope="module")

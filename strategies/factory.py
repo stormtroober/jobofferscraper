@@ -10,6 +10,7 @@ from strategies.accenture import AccentureStrategy
 from strategies.motorola import MotorolaStrategy
 from strategies.cognizant import CognizantStrategy
 from strategies.hsbc import HSBCStrategy
+from strategies.epam import EPAMStrategy
 
 def get_strategy(url, driver):
     """
@@ -37,5 +38,7 @@ def get_strategy(url, driver):
         return CognizantStrategy(driver)
     elif "mycareer.hsbc.com" in url:
         return HSBCStrategy(driver)
+    elif "careers.epam.com" in url:
+        return EPAMStrategy(driver)
     else:
         return JustJoinITStrategy(driver)
