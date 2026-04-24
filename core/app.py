@@ -74,12 +74,7 @@ class JobScraperApp:
 
     def _run_full_scrape(self):
         print("Fetching existing offers from all tabs to avoid duplicates...")
-        existing_slugs = self.sheet_manager.get_all_existing_slugs()
-        print(f"Found {len(existing_slugs)} existing offers across all tabs.")
-
-        print("Fetching existing records for content deduplication...")
-        existing_records = self.sheet_manager.get_all_existing_records()
-        print(f"Loaded {len(existing_records)} existing records.")
+        existing_slugs, existing_records = self.sheet_manager.get_all_existing_data()
 
         # Gather URLs
         all_urls = []
@@ -140,10 +135,11 @@ class JobScraperApp:
             print(f"  New offers to add: {len(new_offers)}")
             
             worksheet = self.sheet_manager.get_or_create_worksheet(sheet_title)
+            preloaded = None
             if new_offers:
-                self.sheet_manager.add_offers(worksheet, new_offers, prepend=True)
-            
-            self.sheet_manager.reorder_and_format(worksheet)
+                preloaded = self.sheet_manager.add_offers(worksheet, new_offers, prepend=True)
+
+            self.sheet_manager.reorder_and_format(worksheet, preloaded_rows=preloaded)
             
             stats.append({
                 'group': sheet_title,

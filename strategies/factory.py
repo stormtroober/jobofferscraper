@@ -12,6 +12,8 @@ from strategies.cognizant import CognizantStrategy
 from strategies.hsbc import HSBCStrategy
 from strategies.epam import EPAMStrategy
 from strategies.aristocrat import AristocratStrategy
+from strategies.zendesk import ZendeskStrategy
+from strategies.vention import VentionStrategy
 
 def get_strategy(url, driver):
     """
@@ -35,6 +37,8 @@ def get_strategy(url, driver):
         return AccentureStrategy(driver)
     elif "aristocrat.wd3.myworkdayjobs.com" in url:
         return AristocratStrategy(driver)
+    elif "zendesk.wd1.myworkdayjobs.com" in url:
+        return ZendeskStrategy(driver)
     elif "myworkdayjobs.com" in url:
         return MotorolaStrategy(driver)
     elif "careers.cognizant.com" in url:
@@ -43,5 +47,7 @@ def get_strategy(url, driver):
         return HSBCStrategy(driver)
     elif "careers.epam.com" in url:
         return EPAMStrategy(driver)
+    elif "join.ventionteams.com" in url:
+        return VentionStrategy(driver)
     else:
         return JustJoinITStrategy(driver)

@@ -36,6 +36,10 @@ TEST_URLS = [
     "https://careers.epam.com/en/jobs/poland?city=4060741400006011394&seniority=junior&sort_by=relevance",
     # Aristocrat
     "https://aristocrat.wd3.myworkdayjobs.com/AristocratExternalCareersSite?locationCountry=131d5ac7e3ee4d7b962bdc96e498e412&locationRegionStateProvince=1796189bbfb44244a4a7242ec41d28cd&jobFamilyGroup=5870f6ab58e61001e2a54cc953330000",
+    # Vention
+    "https://join.ventionteams.com/job-openings?countries=1&cities=2&categories=4%2C1&technologies=11%2C1%2C6%2C16%2C24%2C8%2C4&levels=1%2C8",
+    # Zendesk
+    "https://zendesk.wd1.myworkdayjobs.com/en-US/zendesk?locationRegionStateProvince=1796189bbfb44244a4a7242ec41d28cd&jobFamilyGroup=5c7e2781e58b013cfae0600047618a63",
 ]
 
 @pytest.fixture(scope="module")

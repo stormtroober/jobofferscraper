@@ -22,16 +22,17 @@ class SheetFormatter:
             print(f"Error clearing formatting for '{worksheet.title}': {e}")
 
     @staticmethod
-    def reorder_and_format(worksheet, spreadsheet):
+    def reorder_and_format(worksheet, spreadsheet, preloaded_rows=None):
         """
         Sorts: CVSENT -> SAVE -> Others -> OUT.
-        Colors: 
+        Colors:
          - CVSENT: Green
          - SAVE: Yellow/Orange
          - OUT: Red
+        Pass preloaded_rows to skip the get_all_values API call.
         """
         try:
-            rows = worksheet.get_all_values(value_render_option='FORMULA')
+            rows = preloaded_rows if preloaded_rows is not None else worksheet.get_all_values(value_render_option='FORMULA')
             if not rows: return
 
             header = rows[0]
