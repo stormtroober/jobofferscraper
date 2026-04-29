@@ -14,6 +14,7 @@ from strategies.epam import EPAMStrategy
 from strategies.aristocrat import AristocratStrategy
 from strategies.zendesk import ZendeskStrategy
 from strategies.vention import VentionStrategy
+from strategies.capgemini import CapgeminiStrategy
 
 def get_strategy(url, driver):
     """
@@ -49,5 +50,7 @@ def get_strategy(url, driver):
         return EPAMStrategy(driver)
     elif "join.ventionteams.com" in url:
         return VentionStrategy(driver)
+    elif "capgemini.com" in url:
+        return CapgeminiStrategy(driver)
     else:
         return JustJoinITStrategy(driver)
