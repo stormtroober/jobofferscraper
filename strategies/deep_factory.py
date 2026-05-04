@@ -91,6 +91,10 @@ def get_deep_strategy(url: str, driver: WebDriver) -> DeepScrapingStrategy:
         from strategies.deep.motorola import MotorolaDeepStrategy
         return MotorolaDeepStrategy(driver)
 
+    if "pracuj.pl" in domain:
+        from strategies.deep.pracuj import PracujDeepStrategy
+        return PracujDeepStrategy(driver)
+
     # -----------------------------------------------------------------------
     # Generic fallback – used for unknown / future sites
     # -----------------------------------------------------------------------

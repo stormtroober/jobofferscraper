@@ -15,6 +15,7 @@ from strategies.aristocrat import AristocratStrategy
 from strategies.zendesk import ZendeskStrategy
 from strategies.vention import VentionStrategy
 from strategies.capgemini import CapgeminiStrategy
+from strategies.pracuj import PracujStrategy
 
 def get_strategy(url, driver):
     """
@@ -52,5 +53,7 @@ def get_strategy(url, driver):
         return VentionStrategy(driver)
     elif "capgemini.com" in url:
         return CapgeminiStrategy(driver)
+    elif "pracuj.pl" in url:
+        return PracujStrategy(driver)
     else:
         return JustJoinITStrategy(driver)
