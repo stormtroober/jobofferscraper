@@ -1,93 +1,14 @@
 [
     {
-        "title": "Junior",
+        "title": "Logistics Job Offers",
         "urls": [
-            "https://justjoin.it/job-offers/krakow?keyword=junior&sort=newest&orderBy=DESC&sortBy=newest",
-            "https://justjoin.it/job-offers/krakow?experience-level=junior&orderBy=DESC&sortBy=newest",
-            "https://nofluffjobs.com/pl/krakow?lang=en&criteria=seniority%3Djunior&sort=newest",
-            "https://theprotocol.it/filtry/junior;p/krakow;wp?sort=date",
-            "https://bulldogjob.com/companies/jobs/s/city,Krakow/role,backend,analyst,devops,fullstack,project_manager,tester,mobile,data,automation_tester,qa,ai/experienceLevel,junior,intern/order,published,desc",
-            "https://builtin.com/jobs/hybrid/office/entry-level/junior?daysSinceUpdated=3&city=Krak%C3%B3w&state=Ma%C5%82opolskie&country=POL&allLocations=true"
-        ]
-    },
-    {
-        "title": "Italian",
-        "urls": [
-            "https://justjoin.it/job-offers/krakow?keyword=italian&orderBy=DESC&sortBy=newest",
-            "https://theprotocol.it/filtry/krakow;wp?kw=italian",
-            "https://www.pracuj.pl/praca/italian;kw/krakow;wp/ostatnich%203%20dni;p,3?rd=30&sc=0&iwhpl=false"
-        ]
-    },
-    {
-        "title": "Reply",
-        "urls": [
-            "https://www.reply.com/en/about/careers/pl/job-search?country=pl&role=career_starter&area=technology"
-        ]
-    },
-    {
-        "title": "Uber",
-        "urls": [
-            "https://www.uber.com/pl/en/careers/list/?location=POL--Krakow"
-        ]
-    },
-    {
-        "title": "ReverseGroup",
-        "urls": [
-            "https://careers.reversegroup.io/jobs"
-        ]
-    },
-    {
-        "title": "Accenture",
-        "urls": [
-            "https://www.accenture.com/pl-en/careers/jobsearch?vw=0&is_rj=0&pg=1&ct=Krakow&jt=Early%20Career"
-        ]
-    },
-    {
-        "title": "Motorola",
-        "urls": [
-            "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers?q=junior&jobFamilyGroup=c3fc17b768e842e39b7192f0bf4cb0f1&jobFamilyGroup=2161bef685534428b91fad96fc9069b4&locations=cdb6c301cead01c0fd6255fbbe0073b9&locationCountry=131d5ac7e3ee4d7b962bdc96e498e412"
-        ]
-    },
-    {
-        "title": "Cognizant",
-        "urls": [
-            "https://careers.cognizant.com/emea-en/jobs/?keyword=&industry=Technology&location=Krak%C3%B3w%2C+Poland&radius=40&lat=50.06465009999999&lng=19.9449799&cname=Poland&ccode=PL&pagesize=20"
-        ]
-    },
-    {
-        "title": "HSBC",
-        "urls": [
-            "https://mycareer.hsbc.com/en_GB/external/SearchJobs/?1017=%5B709873%5D&1017_format=812&1018=%5B2729938%5D&1018_format=813&1019=%5B2730530%5D&1019_format=814&1020=%5B79341%5D&1020_format=815&1023=%5B1248547%5D&1023_format=913&1368=-14+days&listFilterMode=1&pipelineRecordsPerPage=10"
-        ]
-    },
-    {
-        "title": "Aristocrat",
-        "urls": [
-            "https://aristocrat.wd3.myworkdayjobs.com/AristocratExternalCareersSite?locationCountry=131d5ac7e3ee4d7b962bdc96e498e412&locationRegionStateProvince=1796189bbfb44244a4a7242ec41d28cd&jobFamilyGroup=5870f6ab58e61001e2a54cc953330000"
-        ]
-    },
-    {
-        "title": "EPAM",
-        "urls": [
-            "https://careers.epam.com/en/jobs/poland?city=4060741400006011394&seniority=junior&sort_by=relevance"
-        ]
-    },
-    {
-        "title": "Vention",
-        "urls": [
-            "https://join.ventionteams.com/job-openings?countries=1&cities=2&categories=4%2C1&technologies=11%2C1%2C6%2C16%2C24%2C8%2C4&levels=1%2C8"
-        ]
-    },
-    {
-        "title": "Zendesk",
-        "urls": [
-            "https://zendesk.wd1.myworkdayjobs.com/en-US/zendesk?locationRegionStateProvince=1796189bbfb44244a4a7242ec41d28cd&jobFamilyGroup=5c7e2781e58b013cfae0600047618a63"
-        ]
-    },
-    {
-        "title": "Capgemini",
-        "urls": [
-            "https://www.capgemini.com/careers/join-capgemini/job-search/?page=1&size=11&country_code=pl-pl&location=Krak%C3%B3w&experience_level=Students%2FGraduates%E2%80%8B"
+            "https://nofluffjobs.com/krakow/logistics?sort=newest",
+            "https://builtin.com/jobs/hybrid/office/supply-chain-procurement/junior/mid-level?daysSinceUpdated=7&city=Krak%C3%B3w&state=Ma%C5%82opolskie&country=POL&allLocations=true",
+            "https://www.pepsicojobs.com/main/jobs?categories=Supply%20Chain&page=1&country=Poland",
+            "https://careers.fedex.com/international/european-operations/jobs?location_name=Krak%C3%B3w%2C%20Poland&location_type=2&filter%5Bcategory%5D%5B0%5D=Facility%20Operations&filter%5Bcategory%5D%5B1%5D=Professional&filter%5Bcity%5D%5B0%5D=Krakow&page_number=1"
+        ],
+        "disabled_urls": [
+            "https://careers.hitachi.com/search/customer-service-and-contact-center-operations/jobs?location=Krakow"
         ]
     }
 ]

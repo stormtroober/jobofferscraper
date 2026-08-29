@@ -1,6 +1,5 @@
 import concurrent.futures
 from services.browser import get_driver
-from core.filters import is_polish_title
 from strategies.factory import get_strategy
 
 def process_url(url):
@@ -26,16 +25,10 @@ def process_url(url):
         raw = strategy.run(url)
         raw_count = len(raw)
         
-        # Filtering Polish titles
-        filtered = [offer for offer in raw if not is_polish_title(offer['title'])]
-        filtered_polish_count = raw_count - len(filtered)
-        
         # Slice top N
-        offers = filtered[:limit]
+        offers = raw[:limit]
         
         msg = f"  [Worker] Done {url}: Found {raw_count} raw"
-        if filtered_polish_count > 0:
-            msg += f", {filtered_polish_count} Polish discarded"
         msg += f". Keeping {len(offers)}."
         print(msg)
         

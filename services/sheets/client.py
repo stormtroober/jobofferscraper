@@ -16,7 +16,7 @@ CREDS_FILE = "credentials.json"
 TOKEN_FILE = "token.json"
 
 class GoogleSheetsClient:
-    def __init__(self, spreadsheet_name="Job Offers Scraper"):
+    def __init__(self, spreadsheet_name="Logistics Job Offers"):
         self.client = None
         self.spreadsheet = None
         self.spreadsheet_name = spreadsheet_name
@@ -79,6 +79,7 @@ class GoogleSheetsClient:
     def _open_spreadsheet(self):
         try:
             self.spreadsheet = self.client.open(self.spreadsheet_name)
+            print(f"Opened spreadsheet '{self.spreadsheet_name}': {self.spreadsheet.url}")
         except gspread.SpreadsheetNotFound:
             print(f"Spreadsheet '{self.spreadsheet_name}' not found. Creating new...")
             self.spreadsheet = self.client.create(self.spreadsheet_name)

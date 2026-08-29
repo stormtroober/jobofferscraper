@@ -15,7 +15,7 @@ class SheetManager(GoogleSheetsClient):
     Inherits connection logic from GoogleSheetsClient.
     Uses SheetFormatter for styling.
     """
-    def __init__(self, spreadsheet_name="Job Offers Scraper"):
+    def __init__(self, spreadsheet_name="Logistics Job Offers"):
         super().__init__(spreadsheet_name)
         self._ws_cache = None  # Fix 3: cache worksheets list across the run
 

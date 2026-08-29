@@ -104,7 +104,8 @@ def parse_links_file(filepath):
     Parses the links file from JSON format.
     Expected structure:
     [
-      {"title": "Sheet Name", "urls": ["url1", "url2"]},
+      {"title": "Sheet Name", "urls": ["url1", "url2"],
+       "disabled_urls": ["url3"]},
       ...
     ]
     """
@@ -119,6 +120,12 @@ def parse_links_file(filepath):
     try:
         with open(filepath, "r") as f:
             data = json.load(f)
+            # JSON has no comment syntax; disabled_urls keeps inactive sources
+            # documented without sending them to the scraper.
+            for group in data:
+                disabled_urls = set(group.get("disabled_urls", []))
+                group["urls"] = [url for url in group.get("urls", [])
+                                 if url not in disabled_urls]
             return data
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON from {filepath}: {e}")
