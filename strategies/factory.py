@@ -1,21 +1,7 @@
-from strategies.justjoinit import JustJoinITStrategy
 from strategies.nofluff import NoFluffJobsStrategy
-from strategies.theprotocol import TheProtocolStrategy
-from strategies.reply import ReplyStrategy
-from strategies.bulldogjob import BulldogJobStrategy
 from strategies.builtin import BuiltInStrategy
-from strategies.uber import UberStrategy
-from strategies.reversegroup import ReverseGroupStrategy
-from strategies.accenture import AccentureStrategy
-from strategies.motorola import MotorolaStrategy
-from strategies.cognizant import CognizantStrategy
-from strategies.hsbc import HSBCStrategy
-from strategies.epam import EPAMStrategy
-from strategies.aristocrat import AristocratStrategy
-from strategies.zendesk import ZendeskStrategy
-from strategies.vention import VentionStrategy
-from strategies.capgemini import CapgeminiStrategy
 from strategies.pracuj import PracujStrategy
+
 
 def get_strategy(url, driver):
     """
@@ -23,37 +9,9 @@ def get_strategy(url, driver):
     """
     if "nofluffjobs.com" in url:
         return NoFluffJobsStrategy(driver)
-    elif "theprotocol.it" in url:
-        return TheProtocolStrategy(driver)
-    elif "reply.com" in url:
-        return ReplyStrategy(driver)
-    elif "bulldogjob.com" in url:
-        return BulldogJobStrategy(driver)
     elif "builtin.com" in url:
         return BuiltInStrategy(driver)
-    elif "uber.com" in url:
-        return UberStrategy(driver)
-    elif "reversegroup.io" in url:
-        return ReverseGroupStrategy(driver)
-    elif "accenture.com" in url:
-        return AccentureStrategy(driver)
-    elif "aristocrat.wd3.myworkdayjobs.com" in url:
-        return AristocratStrategy(driver)
-    elif "zendesk.wd1.myworkdayjobs.com" in url:
-        return ZendeskStrategy(driver)
-    elif "myworkdayjobs.com" in url:
-        return MotorolaStrategy(driver)
-    elif "careers.cognizant.com" in url:
-        return CognizantStrategy(driver)
-    elif "mycareer.hsbc.com" in url:
-        return HSBCStrategy(driver)
-    elif "careers.epam.com" in url:
-        return EPAMStrategy(driver)
-    elif "join.ventionteams.com" in url:
-        return VentionStrategy(driver)
-    elif "capgemini.com" in url:
-        return CapgeminiStrategy(driver)
     elif "pracuj.pl" in url:
         return PracujStrategy(driver)
     else:
-        return JustJoinITStrategy(driver)
+        raise ValueError(f"No scraping strategy available for URL: {url}")

@@ -31,12 +31,9 @@ Supported platforms:
 ├── strategies/
 │   ├── base.py         # Abstract scraping strategy
 │   ├── factory.py      # URL-to-strategy routing
-│   ├── justjoinit.py
+│   ├── builtin.py
 │   ├── nofluff.py
-│   ├── theprotocol.py
-│   ├── bulldogjob.py
-│   ├── reply.py
-│   └── builtin.py
+│   └── pracuj.py
 ├── links.json          # Search URLs configuration
 ├── main.py
 ├── Dockerfile
